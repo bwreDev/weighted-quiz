@@ -14,8 +14,9 @@ export default function Home({ questions }) {
 export async function getStaticProps() {
   const questions = await client.fetch(`*[_type == 'questions']{
     question,
-    category,
+    imageAlt,
     answers,
+    type,
     "imageURL": image.asset->url,
   }`);
 

@@ -5,13 +5,16 @@ import { urlFor } from '../lib/sanity';
 
 const Quiz = ({ questions }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState([]);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [selectedMultiAnswer, setSelectedMultiAnswer] = useState([]);
   const [corporateScore, setCorporateScore] = useState(0);
   const [digitalScore, setDigitalScore] = useState(0);
   const [engineerScore, setEngineerScore] = useState(0);
   const [serviceScore, setServiceScore] = useState(0);
   const [skilledScore, setSkilledScore] = useState(0);
   const [allQuestionsAnswered, setAllQuestionsAnswered] = useState(false);
+  const currentImage = urlFor(questions[currentQuestion].imageURL).url();
+  const questionNumber = currentQuestion + 1;
 
   const prevQuestion = () => {
     if (currentQuestion > 0) {
@@ -25,8 +28,6 @@ const Quiz = ({ questions }) => {
     }
   };
 
-  const questionNumber = currentQuestion + 1;
-
   const handleScore = (e) => {
     e.preventDefault();
 
@@ -38,26 +39,14 @@ const Quiz = ({ questions }) => {
       setEngineerScore(engineerScore + selectedAnswer.engineerCategoryWeight);
       setServiceScore(serviceScore + selectedAnswer.serviceCategoryWeight);
       setSkilledScore(skilledScore + selectedAnswer.skilledCategoryWeight);
-    } else {
-      for (let i = 0; i < e.target.length; i++) {
-        if (e.target[i].checked) {
-          setCorporateScore(
-            corporateScore + selectedAnswer[i].corporateCategoryWeight
-          );
-          setDigitalScore(
-            digitalScore + selectedAnswer[i].digitalCategoryWeight
-          );
-          setEngineerScore(
-            engineerScore + selectedAnswer[i].engineerCategoryWeight
-          );
-          setServiceScore(
-            serviceScore + selectedAnswer[i].serviceCategoryWeight
-          );
-          setSkilledScore(
-            skilledScore + selectedAnswer[i].skilledCategoryWeight
-          );
-        }
-      }
+    } else if (e.target[0].type === 'checkbox') {
+      selectedMultiAnswer.forEach((answer) => {
+        setCorporateScore(corporateScore + answer.corporateCategoryWeight);
+        setDigitalScore(digitalScore + answer.digitalCategoryWeight);
+        setEngineerScore(engineerScore + answer.engineerCategoryWeight);
+        setServiceScore(serviceScore + answer.serviceCategoryWeight);
+        setSkilledScore(skilledScore + answer.skilledCategoryWeight);
+      });
     }
 
     if (currentQuestion < questions.length - 1) {
@@ -65,9 +54,9 @@ const Quiz = ({ questions }) => {
     } else {
       setAllQuestionsAnswered(true);
     }
-    setSelectedAnswer([]);
+    setSelectedAnswer(null);
+    setSelectedMultiAnswer([]);
   };
-  const currentImage = urlFor(questions[currentQuestion].imageURL).url();
 
   return (
     <section className='max-w-7xl mx-auto p-6'>
@@ -117,10 +106,11 @@ const Quiz = ({ questions }) => {
 
         <div className='bg-gray-100 rounded-lg shadow-lg p-6 max-w-2xl'>
           <Image
-            className='rounded w-3/4 mx-auto mb-6'
+            className='rounded w-3/4 mx-auto'
             src={currentImage}
             width={500}
             height={500}
+            alt={questions[currentQuestion].imageAlt}
           />
           <div className='px-12'>
             <h2 className='text-2xl font-bold'>
@@ -137,7 +127,7 @@ const Quiz = ({ questions }) => {
                       type='checkbox'
                       name={questions[currentQuestion]._id}
                       id={answer._key}
-                      onChange={() => selectedAnswer.push(answer)}
+                      onChange={() => selectedMultiAnswer.push(answer)}
                       className='h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300'
                     />
                   ) : (
@@ -145,6 +135,7 @@ const Quiz = ({ questions }) => {
                       type='radio'
                       name={questions[currentQuestion]._id}
                       id={answer._key}
+                      checked={selectedAnswer === answer}
                       onChange={() => setSelectedAnswer(answer)}
                       className='h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300'
                     />
